@@ -68,15 +68,15 @@ if image_to_process:
     quantity_to_add = st.number_input("How many of these are you adding to stock?", min_value=1, value=1, step=1)
     
     if st.button("Analyze and Add to Inventory", type="primary", disabled=(client is None)):
-        with st.spinner("Analyzing image using AI..."):
-            models_to_try = ['gemini-3.8-flash', 'gemini-1.5-flash', 'gemini-3.8-pro']
+        with st.spinner("Analyzing image using AI (this may take a few seconds if servers are busy)..."):
+            import time
             success = False
             
-            for model_name in models_to_try:
+            for attempt in range(3):
                 try:
                     # Call Gemini
                     response = client.models.generate_content(
-                        model=model_name,
+                        model='gemini-3.8-flash',
                         contents=[
                             image_to_process, 
                             "Extract the inventory details of this stationery item. If it is multiple items, focus on the most prominent one or summarize the pack."
@@ -91,7 +91,7 @@ if image_to_process:
                     # Parse JSON
                     result_json = json.loads(response.text)
                     
-                    st.success(f"Analysis Complete! (Used {model_name})")
+                    st.success("Analysis Complete!")
                     st.json(result_json)
                     
                     # Prepare data for Google Form
@@ -119,7 +119,12 @@ if image_to_process:
                     break # Break out of the loop if successful
                     
                 except Exception as e:
-                    st.warning(f"Failed with {model_name}: {e}. Trying next model...")
+                    if "503" in str(e) and attempt < 2:
+                        st.warning(f"Google servers are currently busy (Attempt {attempt + 1}/3). Retrying in 3 seconds...")
+                        time.sleep(3)
+                    else:
+                        st.error(f"Failed: {e}")
+                        break
                     
             if not success:
-                st.error("All AI models are currently busy. Please try again in a minute.")
+                st.error("All attempts failed because Google's AI is too busy right now. Please try again in a few minutes!")
