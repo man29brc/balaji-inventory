@@ -7,6 +7,7 @@ from PIL import Image
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
+import requests
 
 # Constants
 EXCEL_FILE = "inventory.xlsx"
@@ -45,7 +46,7 @@ except Exception as e:
     st.error(f"Error initializing AI client: {e}")
 
 # Tab for Camera vs File Upload
-tab1, tab2, tab3 = st.tabs(["Take Picture", "Upload Image", "View Excel"])
+tab1, tab2 = st.tabs(["Take Picture", "Upload Image"])
 
 image_to_process = None
 
@@ -60,24 +61,6 @@ with tab2:
     if uploaded_file:
         image_to_process = Image.open(uploaded_file)
         st.image(image_to_process, caption="Uploaded Image", use_container_width=False, width=400)
-
-with tab3:
-    if os.path.exists(EXCEL_FILE):
-        df = pd.read_excel(EXCEL_FILE)
-        # Using HTML rendering to bypass PyArrow App Control blocks on Windows
-        st.markdown(df.to_html(index=False), unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Download button
-        with open(EXCEL_FILE, "rb") as file:
-            st.download_button(
-                label="Download Excel File",
-                data=file,
-                file_name=EXCEL_FILE,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-    else:
-        st.info("No inventory data found yet. Start adding items!")
 
 # Processing the image
 if image_to_process:
@@ -111,28 +94,27 @@ if image_to_process:
                     st.success(f"Analysis Complete! (Used {model_name})")
                     st.json(result_json)
                     
-                    # Prepare data for Excel
-                    new_row = {
-                        "Date Added": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "Item Name": result_json.get("item_name", ""),
-                        "Brand": result_json.get("brand", ""),
-                        "Category": result_json.get("category", ""),
-                        "Quantity Added": quantity_to_add,
-                        "Pack Size": result_json.get("quantity_in_pack", ""),
-                        "Price/MRP": result_json.get("price_estimate", ""),
-                        "Description": result_json.get("short_description", "")
+                    # Prepare data for Google Form
+                    form_url = "https://docs.google.com/forms/d/e/1FAIpQLSfEKrFyFCMDc28A9fNlzoaQwT55ar7h6EsP4TMj5497BMWK-g/formResponse"
+                    form_data = {
+                        "entry.1153844324": result_json.get("item_name", ""),
+                        "entry.2079022739": result_json.get("brand", ""),
+                        "entry.2010766534": result_json.get("category", ""),
+                        "entry.2004142314": quantity_to_add,
+                        "entry.1961838723": result_json.get("quantity_in_pack", ""),
+                        "entry.1704120799": result_json.get("price_estimate", ""),
+                        "entry.1024348240": result_json.get("short_description", "")
                     }
                     
-                    df_new = pd.DataFrame([new_row])
-                    
-                    if os.path.exists(EXCEL_FILE):
-                        df_existing = pd.read_excel(EXCEL_FILE)
-                        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-                    else:
-                        df_combined = df_new
+                    try:
+                        res = requests.post(form_url, data=form_data)
+                        if res.status_code == 200:
+                            st.success(f"☁️ Successfully added {quantity_to_add}x '{result_json.get('item_name', '')}' to Google Sheets!")
+                        else:
+                            st.error("Failed to save to Google Sheets. Status Code: " + str(res.status_code))
+                    except Exception as e:
+                        st.error(f"Failed to connect to Google Form: {e}")
                         
-                    df_combined.to_excel(EXCEL_FILE, index=False)
-                    st.success(f"Successfully added {quantity_to_add}x '{new_row['Item Name']}' to {EXCEL_FILE}!")
                     success = True
                     break # Break out of the loop if successful
                     
