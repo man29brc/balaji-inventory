@@ -32,18 +32,24 @@ with st.sidebar:
     st.info("The 3-Second Upsell: When a student buys stationery, always ask: **'PAN card bana liya? College ke baad kaam aayega, main yahan banata hoon.'**")
     
 # Main logic
-st.subheader("Setup")
-api_key_input = st.text_input("Enter your Gemini API Key:", type="password", help="Get this from Google AI Studio (aistudio.google.com)")
+api_key = None
+try:
+    api_key = st.secrets.get("GEMINI_API_KEY")
+except Exception:
+    pass
 
-if not api_key_input:
-    st.warning("Please enter a Gemini API Key above to enable AI analysis.")
+if not api_key:
+    st.subheader("Setup")
+    api_key = st.text_input("Enter your Gemini API Key:", type="password", help="Get this from Google AI Studio (aistudio.google.com)")
+    if not api_key:
+        st.warning("Please enter a Gemini API Key above or add it to Streamlit Secrets.")
 
 client = None
-try:
-    if api_key_input:
-        client = genai.Client(api_key=api_key_input)
-except Exception as e:
-    st.error(f"Error initializing AI client: {e}")
+if api_key:
+    try:
+        client = genai.Client(api_key=api_key)
+    except Exception as e:
+        st.error(f"Error initializing AI client: {e}")
 
 # Tab for Camera vs File Upload
 tab1, tab2 = st.tabs(["Take Picture", "Upload Image"])
