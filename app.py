@@ -32,24 +32,18 @@ with st.sidebar:
     st.info("The 3-Second Upsell: When a student buys stationery, always ask: **'PAN card bana liya? College ke baad kaam aayega, main yahan banata hoon.'**")
     
 # Main logic
-api_key = None
-try:
-    api_key = st.secrets.get("GEMINI_API_KEY")
-except Exception:
-    pass
+st.subheader("Setup")
+api_key_input = st.text_input("Enter your Gemini API Key:", type="password", help="Get this from Google AI Studio (aistudio.google.com)")
 
-if not api_key:
-    st.subheader("Setup")
-    api_key = st.text_input("Enter your Gemini API Key:", type="password", help="Get this from Google AI Studio (aistudio.google.com)")
-    if not api_key:
-        st.warning("Please enter a Gemini API Key above or add it to Streamlit Secrets.")
+if not api_key_input:
+    st.warning("Please enter a Gemini API Key above to enable AI analysis.")
 
 client = None
-if api_key:
-    try:
-        client = genai.Client(api_key=api_key)
-    except Exception as e:
-        st.error(f"Error initializing AI client: {e}")
+try:
+    if api_key_input:
+        client = genai.Client(api_key=api_key_input)
+except Exception as e:
+    st.error(f"Error initializing AI client: {e}")
 
 # Tab for Camera vs File Upload
 tab1, tab2 = st.tabs(["Take Picture", "Upload Image"])
@@ -103,13 +97,13 @@ if image_to_process:
                     # Prepare data for Google Form
                     form_url = "https://docs.google.com/forms/d/e/1FAIpQLSfEKrFyFCMDc28A9fNlzoaQwT55ar7h6EsP4TMj5497BMWK-g/formResponse"
                     form_data = {
-                        "entry.1153844324": result_json.get("item_name", ""),
-                        "entry.2079022739": result_json.get("brand", ""),
-                        "entry.2010766534": result_json.get("category", ""),
-                        "entry.2004142314": quantity_to_add,
-                        "entry.1961838723": result_json.get("quantity_in_pack", ""),
-                        "entry.1704120799": result_json.get("price_estimate", ""),
-                        "entry.1024348240": result_json.get("short_description", "")
+                        "entry.1048584284": result_json.get("item_name", ""),
+                        "entry.1539118968": result_json.get("brand", ""),
+                        "entry.1164511249": result_json.get("category", ""),
+                        "entry.60721169": quantity_to_add,
+                        "entry.1355037108": result_json.get("quantity_in_pack", ""),
+                        "entry.1367724986": result_json.get("price_estimate", ""),
+                        "entry.1644742150": result_json.get("short_description", "")
                     }
                     
                     try:
