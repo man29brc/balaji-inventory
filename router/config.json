@@ -1,0 +1,58 @@
+{
+  "_note": "Model slugs and effort lists were checked against openrouter.ai/api/v1/models on 2026-10-08. Live data overrides 'efforts' and 'price' at runtime; run `python router.py --check` to re-verify.",
+
+  "budget": {
+    "monthly_usd": 10.0,
+    "daily_usd": 1.0,
+    "soft_limit_pct": 80,
+    "timezone_offset_hours": 5.5
+  },
+
+  "tiers": {
+    "simple": {
+      "about": "Captions, hooks, hashtags, translations, rewrites. Cheap Chinese model, low effort, Gemini fallback.",
+      "models": ["z-ai/glm-5.3-flash", "google/gemini-3.1-flash-lite"],
+      "effort": "low",
+      "max_tokens": 3000,
+      "provider": {"data_collection": "deny"}
+    },
+    "standard": {
+      "about": "Plans, analysis, strategy, long drafts. Cheap Chinese model, high effort, Gemini fallback.",
+      "models": ["deepseek/deepseek-v4.1-flash", "google/gemini-3.7-flash"],
+      "effort": "high",
+      "max_tokens": 8000,
+      "provider": {"data_collection": "deny"},
+      "downgrade_to": "simple"
+    },
+    "hard": {
+      "about": "WVS / mutual fund / insurance content (SEBI, AMFI, IRDAI). Strong non-Chinese model, never auto-downgraded.",
+      "models": ["anthropic/claude-sonnet-5.5", "google/gemini-3.1-pro-preview"],
+      "effort": "high",
+      "max_tokens": 8000,
+      "provider": {"data_collection": "deny"}
+    },
+    "sensitive": {
+      "about": "Prompts containing PAN / Aadhaar / phone / email. Zero-data-retention endpoints only; fails closed if none exist.",
+      "models": ["anthropic/claude-sonnet-5.5", "google/gemini-3.1-pro-preview"],
+      "effort": "medium",
+      "max_tokens": 6000,
+      "provider": {"data_collection": "deny", "zdr": true}
+    }
+  },
+
+  "models": {
+    "z-ai/glm-5.3-flash":            {"efforts": ["max", "high", "low"], "price": [0.15, 0.50]},
+    "deepseek/deepseek-v4.1-flash":  {"efforts": ["max", "high", "low"], "price": [0.30, 1.20]},
+    "anthropic/claude-sonnet-5.5":   {"efforts": ["max", "xhigh", "high", "medium", "low"], "price": [2.00, 10.00]},
+    "google/gemini-3.1-flash-lite":  {"efforts": ["high", "medium", "low", "minimal"], "price": [0.25, 1.50]},
+    "google/gemini-3.7-flash":       {"efforts": ["high", "medium", "low"], "price": [0.75, 3.75]},
+    "google/gemini-3.1-pro-preview": {"efforts": ["high", "medium", "low"], "price": [2.00, 12.00]}
+  },
+
+  "rules": {
+    "simple_max_chars": 2000,
+    "simple_words": ["caption", "hook", "hashtag", "translate", "translation", "rewrite", "rephrase", "shorten", "proofread", "tagline", "greeting", "reply to", "gujarati", "hindi"],
+    "standard_words": ["analyse", "analyze", "strategy", "plan", "compare", "roadmap", "evaluate", "step by step", "research", "debug", "code", "architecture", "budget", "forecast"],
+    "compliance_words": ["mutual fund", "sip", "insurance", "term plan", "ulip", "irdai", "sebi", "amfi", "elss", "annuity", "pension", "premium", "tax saving", "80c", "guaranteed", "returns", "wvs", "nav", "endowment"]
+  }
+}
