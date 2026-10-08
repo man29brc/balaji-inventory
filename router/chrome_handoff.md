@@ -1,37 +1,45 @@
-# Handoff notes for Claude in Chrome (paste one note per session)
+# Handoff notes for Claude in Chrome: run in parallel in tabs already open
 
-Run Note A first, then the router step, then Note B.
+Open two Claude sessions side by side. Paste Note A into one and Note B into the other. They run at the same time and do not depend on each other until the final step.
+
+How the two connect:
+- Note A makes the OpenRouter key. Only the owner copies it, into a terminal on their own computer.
+- The owner then starts the router (commands below). Note B's test step waits for the owner's "router is running".
+- Everything else in Note B (models, folders, prompts) needs no router and no key, so it can start immediately.
+
+Before pasting: fill the [BRACKETS] in the CSC Balaji and UCF prompts in `typingmind_folder_prompts.md`. Paste the three finished prompts into the Note B session when asked.
 
 ---
 
-## Note A: OpenRouter
+## Note A: OpenRouter (use the tab already open on openrouter.ai)
 
 ```
-You are helping the owner of three small businesses in Vadodara set up OpenRouter (openrouter.ai) in their own Chrome. First call tabs_context_mcp and look for tabs already open on openrouter.ai; reuse those. If none exist, open a new tab.
+You are helping the owner of three small businesses in Vadodara set up OpenRouter in their own Chrome.
 
-GOAL: a safe, capped OpenRouter setup that a local routing script will use.
+TABS: Call tabs_context_mcp first. The owner already has a tab open on openrouter.ai. Use ONLY that tab (and tabs you open on openrouter.ai from it). Never touch, read, or navigate any other tab. Another Claude session is working in the owner's TypingMind tab at the same time, so leave it alone. If you cannot find an openrouter.ai tab, stop and ask.
+
+GOAL: a safe, capped OpenRouter setup for a local routing script.
 
 DO, in this order:
-1. Open https://openrouter.ai/settings/keys. Report whether the owner is signed in. If not, stop and ask them to sign in; never enter passwords.
-2. Report the current credit balance and whether any key already exists (names only).
-3. Create ONE new API key named "balaji-router" with a credit limit of $10 (monthly reset if offered, otherwise total). When the key value is displayed, STOP and tell the owner to copy it themselves into their computer's OPENROUTER_API_KEY variable. Do not read it out, type it anywhere, or repeat it in chat.
-4. Open https://openrouter.ai/settings/routing (Auto Router section). Report what is currently saved. Do not change it: the owner's script handles routing.
-5. Open the Guardrails section (Settings > Privacy > Guardrails). Report whether a spending cap exists. Propose, but do not create without approval: daily cap $1, monthly cap $10, apply to the key "balaji-router".
-6. Report back: signed in yes/no, credits, key created yes/no, limits set, guardrail status, anything unexpected.
+1. In the open tab, go to https://openrouter.ai/settings/keys. Report whether the owner is signed in. If not, stop and ask them to sign in; never enter passwords.
+2. Report the credit balance and whether any key already exists (names only).
+3. Create ONE new API key named "balaji-router" with a credit limit of $10 (monthly reset if offered, otherwise total). When the key value is shown, STOP and tell the owner to copy it themselves into their computer's terminal variable OPENROUTER_API_KEY. Do not read it out, type it anywhere, or repeat it in chat.
+4. Open https://openrouter.ai/settings/routing and report what is saved in the Auto Router section. Do not change it.
+5. Open the Guardrails section (Settings > Privacy > Guardrails) and report whether a spending cap exists. Propose, but do NOT create without the owner's yes: daily cap $1, monthly cap $10, applied to the key "balaji-router".
+6. Report back in 10 lines or fewer: signed in yes/no, credits, key created yes/no, limits set, guardrail status, anything unexpected. End with: "Key created. Owner: copy it and start the router."
 
-DO NOT without asking the owner first and getting a clear yes in this chat:
-- add credits, enter payment details, or start any subscription or purchase
+DO NOT without a clear yes from the owner in this chat:
+- add credits, enter payment details, or start any purchase or subscription
 - delete or edit existing keys
 - change privacy, data-collection, or account settings
 - enable BYOK or connect other provider keys
 
-STOP and ask if: a page will not load after 2 attempts, a dialog or CAPTCHA appears, the layout differs from what is described, or any step needs payment. Describe what you see and what you tried. Do not guess at buttons.
-Keep your reports short: bullets, no more than 10 lines.
+STOP and ask if: a page fails to load after 2 attempts, a dialog or CAPTCHA appears, the screen differs from this note, or any step needs payment. Describe what you see and what you tried. Do not guess at buttons.
 ```
 
 ---
 
-## Router step (owner, on their own computer, in a terminal)
+## Router step (owner, on their own computer, in a terminal; after Note A says the key is created)
 
 ```
 git pull origin claude/funny-gauss-yk826r
@@ -41,43 +49,46 @@ python3 router.py --check
 export OPENROUTER_API_KEY=<paste your key here, in the terminal only>
 python3 router.py --serve
 ```
-Leave the terminal open. The router listens at http://127.0.0.1:8787/v1 and spend is at http://127.0.0.1:8787/spend.
+Leave the terminal open. The router listens at http://127.0.0.1:8787/v1. Then tell the Note B session: "router is running".
 
 ---
 
-## Note B: TypingMind
+## Note B: TypingMind (use the tab already open on typingmind.com)
 
 ```
-You are helping the owner of three small businesses in Vadodara set up TypingMind (typingmind.com) in their own Chrome. First call tabs_context_mcp and look for tabs already open on typingmind.com; reuse those. If none exist, open a new tab.
+You are helping the owner of three small businesses in Vadodara set up TypingMind in their own Chrome.
 
-GOAL: TypingMind uses a local routing script as a custom model endpoint, with three folders, one per business.
+TABS: Call tabs_context_mcp first. The owner already has a tab open on typingmind.com. Use ONLY that tab for TypingMind work. Never touch, read, or navigate any other tab; another Claude session is working in the owner's OpenRouter tab at the same time. The one exception is PART 2, step 1, where you may open a NEW tab for the local check and close it afterwards. If you cannot find a typingmind.com tab, stop and ask.
 
-BEFORE STARTING, check: the owner's local router is running at http://127.0.0.1:8787. Open http://127.0.0.1:8787/v1/models in a new tab. It should list router/auto, router/simple, router/standard, router/hard, router/sensitive. If it does not, stop and tell the owner to start the router.
+PART 1: start now, no router needed.
+1. Report whether TypingMind is signed in or licensed, and the plan shown. If a license is missing, STOP. Do not buy anything.
+2. Go to Manage Models, then Add Custom Model. Add these four models, one each, endpoint http://127.0.0.1:8787/v1/chat/completions, model ID exactly as listed:
+   router/auto  (display name "Router Auto")
+   router/hard  ("Router Hard (WVS)")
+   router/simple  ("Router Simple")
+   router/standard  ("Router Standard")
+   If an API key field is required, ask the owner what to enter; do not invent a value. Field labels may differ from this note: describe anything unfamiliar before filling it.
+3. Create three folders: "WVS", "CSC Balaji", "UCF". Set default models: WVS = Router Hard (WVS); CSC Balaji = Router Auto; UCF = Router Auto.
+4. For each folder, paste the custom instructions the OWNER gives you in this chat, exactly as given. If they have not pasted them, ask for them. Never invent, shorten, or "improve" a prompt. If a prompt still contains [BRACKETS], stop and tell the owner which ones.
+5. Report in 10 lines or fewer: models added, folders created, prompts pasted, anything unexpected. End with: "Part 1 done. Waiting for 'router is running'."
 
-DO, in this order:
-1. Report whether TypingMind is open, signed in or licensed, and the plan shown. If a license is missing, STOP; do not buy anything.
-2. Go to Manage Models, then Add Custom Model. Add these models, one each, with endpoint http://127.0.0.1:8787/v1/chat/completions and the model ID exactly as listed:
-   router/auto, router/hard, router/simple, router/standard
-   Use the display names "Router Auto", "Router Hard (WVS)", "Router Simple", "Router Standard". Where an API key field is required, leave it blank or ask the owner; a router token exists only if they set ROUTER_TOKEN, so ask.
-   Field labels may differ from this note. Describe what you see before filling anything unfamiliar.
-3. Send one test message to Router Auto: "Write 3 hooks for a Reel about home loan documents". Report the answer length and, if visible, which tier/model answered (the router adds an x_router field and X-Router-Tier header).
-4. Create three folders: "WVS", "CSC Balaji", "UCF". For each, set the default model (WVS: Router Hard; CSC Balaji: Router Auto; UCF: Router Auto).
-5. For each folder, paste the custom instructions the OWNER provides from router/typingmind_folder_prompts.md. If they have not pasted them in this chat, stop and ask. Never invent, shorten or "improve" the prompts. The CSC Balaji and UCF prompts contain [BRACKETS] the owner must fill first.
-6. Report back: models added, test result, folders created, anything unexpected.
+PART 2: only after the owner says "router is running".
+1. Open a NEW tab at http://127.0.0.1:8787/v1/models. It should list router/auto, router/simple, router/standard, router/hard, router/sensitive. Close that tab. If it fails or lists something else, STOP and report the exact error.
+2. In the TypingMind tab, open a new chat with Router Auto and send: "Write 3 hooks for a Reel about home loan documents". Report whether an answer came back, how long it is, and whether any error appeared.
+3. If the browser blocks the call to 127.0.0.1, STOP and report the exact error text.
 
 DO NOT without a clear yes from the owner in this chat:
-- purchase or renew a license, enter payment details
+- purchase or renew a license, or enter payment details
 - paste or type any API key (the owner does this)
-- delete chats, folders or existing models
-- connect MCP connectors or third-party accounts (a later, separate step)
+- delete chats, folders, or existing models
+- connect MCP connectors or third-party accounts (a separate later step)
 
-STOP and ask if: the browser blocks calls to 127.0.0.1 (report the exact error), a page will not load after 2 attempts, a dialog or CAPTCHA appears, or the screen differs from this note. Do not guess.
-Keep your reports short: bullets, no more than 10 lines.
+STOP and ask if: a page fails to load after 2 attempts, a dialog or CAPTCHA appears, or the screen differs from this note. Do not guess.
 ```
 
 ---
 
-Checks the owner should do after both notes finish
-- Open http://127.0.0.1:8787/spend: today's and this month's spend should be near $0 after the test message.
-- Send one SIP caption in the WVS folder and confirm the answer carries the ARN line and the market risk disclaimer.
-- Send one fake chat containing a made-up PAN (for example ABCDE1234F) and confirm the router log shows tier "sensitive".
+Checks for the owner after both notes finish
+- http://127.0.0.1:8787/spend should show about $0 after the test message.
+- In the WVS folder, ask for one SIP caption. It must carry the ARN line and the market-risk disclaimer.
+- Send a chat with a made-up PAN (for example ABCDE1234F) and confirm the router log shows tier "sensitive".
